@@ -1,0 +1,173 @@
+/* ============================================================
+   SOUNDWAVE — App.css
+   ✅ FIX #9 — Replaced Vite default template CSS entirely
+   ============================================================ */
+
+/* ── Page transitions ────────────────────────────────────── */
+.page-enter {
+  animation: fadeUp 0.3s ease both;
+}
+
+/* ── Section layout helpers ──────────────────────────────── */
+.page-content {
+  padding: 32px 32px 120px;
+  max-width: 1400px;
+}
+
+/* ── Responsive grid helpers for LandingPage ────────────── */
+/* ✅ FIX D — inline style grids can't respond to media queries;
+   use these classes instead */
+.landing-features-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 20px;
+}
+
+.landing-showcase-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 80px;
+  align-items: center;
+}
+
+.landing-pricing-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 20px;
+  align-items: stretch;
+}
+
+.landing-about-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 80px;
+  align-items: center;
+}
+
+.landing-team-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 20px;
+}
+
+.landing-stats-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 24px;
+  text-align: center;
+}
+
+.landing-footer-grid {
+  display: grid;
+  grid-template-columns: 260px 1fr;
+  gap: 80px;
+}
+
+.landing-footer-links {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 32px;
+}
+
+/* ── Responsive breakpoints ──────────────────────────────── */
+@media (max-width: 1200px) {
+  .landing-features-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+  .landing-team-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (max-width: 1024px) {
+  .landing-showcase-grid,
+  .landing-about-grid {
+    grid-template-columns: 1fr;
+    gap: 40px;
+  }
+
+  .landing-pricing-grid {
+    grid-template-columns: 1fr;
+    max-width: 440px;
+    margin: 0 auto;
+  }
+}
+
+@media (max-width: 768px) {
+  .page-content {
+    padding: 20px 18px 100px;
+  }
+
+  .landing-features-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .landing-stats-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .landing-footer-grid {
+    grid-template-columns: 1fr;
+    gap: 40px;
+  }
+
+  .landing-footer-links {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+/* ── Volume slider custom track ──────────────────────────── */
+.volume-slider {
+  -webkit-appearance: none;
+  appearance: none;
+  height: 3px;
+  background: var(--bg-raised);
+  border-radius: 999px;
+  outline: none;
+  cursor: pointer;
+}
+
+.volume-slider::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: var(--cyan);
+  cursor: pointer;
+  box-shadow: 0 0 4px var(--cyan);
+}
+
+/* ── Track row hover ─────────────────────────────────────── */
+.track-row {
+  transition: background var(--t-fast);
+  border-radius: 8px;
+}
+
+.track-row:hover {
+  background: var(--bg-hover);
+}
+
+/* ── Card hover lift ─────────────────────────────────────── */
+.card-lift {
+  transition: transform var(--t-smooth), box-shadow var(--t-smooth), border-color var(--t-smooth);
+}
+
+.card-lift:hover {
+  transform: translateY(-4px);
+  box-shadow: var(--glow-card);
+  border-color: var(--border-subtle);
+}
+
+/* ── Gradient text (re-export from index.css for JSX className use) ── */
+.gradient-text {
+  background: linear-gradient(135deg, var(--cyan), var(--violet));
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+/* ── Progress bar animation ──────────────────────────────── */
+@keyframes progressPulse {
+  0%, 100% { opacity: 1; }
+  50%       { opacity: 0.7; }
+}
