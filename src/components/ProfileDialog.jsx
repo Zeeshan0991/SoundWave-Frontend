@@ -11,7 +11,8 @@ import { getDisplayName, getAvatarLetter } from "../api";
  *  1. Avatar upload (drag & drop or click)
  *  2. Username edit
  *  3. Email (read-only)
- *  4. Change password
+ *  4. Change password  ← hidden for Google-only users (they have no app password)
+ *  5. Create Password  ← shown only for Google-only users
  *
  * Props:
  *  onClose  {function}
@@ -23,19 +24,27 @@ import { getDisplayName, getAvatarLetter } from "../api";
  *   - The avatar inside the dialog updates instantly ✅
  *   - TopBar and Sidebar update instantly (they read from AuthContext) ✅
  *   - No page refresh required ✅
+ *
+ * PHASE 13 FIX:
+ *  The "Password" tab (Change Password) is now hidden for Google-only accounts.
+ *  Google-only users have no app password to change — showing that tab was
+ *  misleading and would always result in a backend 403. The tab is replaced
+ *  by "Create Password" for those users, which remains the correct flow.
  */
 export default function ProfileDialog({ onClose }) {
   // ✅ PHASE 5: added createPassword to destructure
   const { user, updateProfile, uploadAvatar, changePassword, createPassword } = useAuth();
   const toast = useToast();
 
-  // Determine if this is a Google-only account (no local password yet)
-  // Used to show the "Create Password" tab only when relevant
+  // Determine if this is a Google-only account (no local password yet).
+  // true  → hide "Password" tab, show "Create Password" tab instead
+  // false → show "Password" tab, hide "Create Password" tab
   const isGoogleOnly = !!(user?.googleId || user?.google_id) && !user?.hasPassword;
 
   /* ── Tabs ─────────────────────────────────────────────────── */
-  // ✅ PHASE 5: tab can now be "profile" | "password" | "create-password"
-  // "create-password" tab only shown for Google-only accounts
+  // ✅ PHASE 5 / PHASE 13:
+  //   - Normal users:      "profile" | "password"
+  //   - Google-only users: "profile" | "create-password"  (no "password" tab)
   const [tab, setTab] = useState("profile");
 
   /* ── Profile fields ───────────────────────────────────────── */
@@ -310,6 +319,15 @@ export default function ProfileDialog({ onClose }) {
         </div>
 
         {/* ── Tabs ────────────────────────────────────────── */}
+        {/*
+         * PHASE 13 FIX:
+         *   Google-only users  → tabs: Profile | Create Password
+         *   Normal users       → tabs: Profile | Password
+         *
+         * The "Password" (change) tab is intentionally hidden for Google-only
+         * accounts — they have no app password to change. Showing it would
+         * mislead users and always result in a backend 403.
+         */}
         <div
           style={{
             display:      "flex",
@@ -319,10 +337,12 @@ export default function ProfileDialog({ onClose }) {
           }}
         >
           {[
-            ["profile",  "Profile"],
-            ["password", "Password"],
-            // ✅ PHASE 5: "Create Password" tab only shown for Google-only accounts
-            ...(isGoogleOnly ? [["create-password", "Create Password"]] : []),
+            ["profile", "Profile"],
+            // Google-only: skip "Password", show "Create Password" instead
+            ...(isGoogleOnly
+              ? [["create-password", "Create Password"]]
+              : [["password", "Password"]]
+            ),
           ].map(([key, label]) => (
             <button
               key={key}
@@ -677,8 +697,12 @@ export default function ProfileDialog({ onClose }) {
             </div>
           )}
 
-          {/* ══ PASSWORD TAB ════════════════════════════ */}
-          {tab === "password" && (
+          {/* ══ PASSWORD TAB (normal accounts only) ═══════════
+           * PHASE 13 FIX: This tab is only reachable by non-Google-only
+           * users. Google-only users (isGoogleOnly === true) never see
+           * this tab in the tab bar, so this guard is a safety net only.
+           ════════════════════════════════════════════════════ */}
+          {tab === "password" && !isGoogleOnly && (
             <form
               onSubmit={handleChangePassword}
               style={{ display: "flex", flexDirection: "column", gap: "18px" }}
@@ -764,10 +788,14 @@ export default function ProfileDialog({ onClose }) {
               </button>
             </form>
           )}
+
           {/* ══ CREATE PASSWORD TAB (Google-only users) ══════════
            * PHASE 5: This is the secure, authenticated way for a
            * Google user to add a local password to their account.
            * They are already signed in — no email proof needed.
+           *
+           * PHASE 13: This is now the ONLY password-related tab
+           * Google-only users see. The "Password" tab is hidden for them.
            ════════════════════════════════════════════════════ */}
           {tab === "create-password" && isGoogleOnly && (
             <form

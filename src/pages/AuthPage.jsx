@@ -121,7 +121,7 @@ function AvailabilityBadge({ status }) {
 }
 
 /* ══════════════════════════════════════════════════════════════════════
-   EMAIL OTP MODAL  (unchanged)
+   EMAIL OTP MODAL
 ══════════════════════════════════════════════════════════════════════ */
 function EmailOTPModal({ email, devOtp: initialDevOtp, onVerified, onClose }) {
   const [digits, setDigits] = useState(["", "", "", "", "", ""]);
@@ -129,8 +129,14 @@ function EmailOTPModal({ email, devOtp: initialDevOtp, onVerified, onClose }) {
   const [error, setError] = useState("");
   const [resending, setResending] = useState(false);
   const [resendCool, setResendCool] = useState(30);
-  const [devOtp, setDevOtp] = useState(initialDevOtp || "");
   const inputRefs = useRef([]);
+
+  // Log OTP to console only — never display on screen
+  useEffect(() => {
+    if (initialDevOtp) {
+      console.log("%c[DEV] Email OTP: " + initialDevOtp, "background:#2a2a00;color:#ffd166;padding:4px 8px;border-radius:4px;font-weight:700;font-size:14px;letter-spacing:4px;");
+    }
+  }, [initialDevOtp]);
 
   useEffect(() => {
     if (resendCool <= 0) return;
@@ -207,7 +213,11 @@ function EmailOTPModal({ email, devOtp: initialDevOtp, onVerified, onClose }) {
       });
       const data = await res.json();
       if (res.ok) {
-        setDevOtp(data.devOtp || ""); setResendCool(30); inputRefs.current[0]?.focus();
+        // Log resent OTP to console only
+        if (data.devOtp) {
+          console.log("%c[DEV] Resent OTP: " + data.devOtp, "background:#2a2a00;color:#ffd166;padding:4px 8px;border-radius:4px;font-weight:700;font-size:14px;letter-spacing:4px;");
+        }
+        setResendCool(30); inputRefs.current[0]?.focus();
       } else if (data.field === "email") {
         setError("This email was just registered by another account.");
       } else {
@@ -262,26 +272,8 @@ function EmailOTPModal({ email, devOtp: initialDevOtp, onVerified, onClose }) {
         <p style={{ fontSize: "13.5px", color: "var(--text-secondary)", lineHeight: 1.65, marginBottom: "24px" }}>
           We sent a 6-digit verification code to{" "}
           <strong style={{ color: "var(--text-primary)" }}>{email}</strong>.
+          Check your inbox — or your browser console in dev mode.
         </p>
-
-        {devOtp && (
-          <div style={{
-            padding: "10px 14px", background: "rgba(255,209,102,0.07)",
-            border: "1px solid rgba(255,209,102,0.25)",
-            borderRadius: "10px", marginBottom: "20px",
-            display: "flex", alignItems: "center", gap: "10px",
-          }}>
-            <span style={{ fontSize: "13px" }}>🛠</span>
-            <div>
-              <div style={{ fontSize: "10px", fontWeight: 700, letterSpacing: "0.8px", textTransform: "uppercase", color: "rgba(255,209,102,0.75)", marginBottom: "2px" }}>
-                Dev mode — no email sent
-              </div>
-              <div style={{ fontSize: "14px", fontWeight: 700, letterSpacing: "6px", color: "rgba(255,209,102,0.95)", fontFamily: "monospace" }}>
-                {devOtp}
-              </div>
-            </div>
-          </div>
-        )}
 
         <div style={{ display: "flex", gap: "10px", justifyContent: "center", marginBottom: "20px" }}>
           {digits.map((d, i) => (
@@ -582,15 +574,13 @@ function CreatePasswordModal({ identifier, onConfirm, onClose }) {
 }
 
 /* ══════════════════════════════════════════════════════════════════════
-   FORGOT PASSWORD MODAL  (unchanged)
+   FORGOT PASSWORD MODAL
 ══════════════════════════════════════════════════════════════════════ */
 function ForgotPasswordModal({ onClose, forgotPassword }) {
   const [email, setEmail] = useState("");
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState("");
   const [step, setStep] = useState("email");
-  const [devToken, setDevToken] = useState("");
-  const [resetUrl, setResetUrl] = useState("");
 
   const handleSubmit = async () => {
     setError("");
@@ -603,7 +593,13 @@ function ForgotPasswordModal({ onClose, forgotPassword }) {
       setError(result.message || "Something went wrong."); return;
     }
     if (result.field === "google_only") { setStep("google"); return; }
-    if (result.devToken) { setDevToken(result.devToken); setResetUrl(result.resetUrl || ""); }
+    // Log dev reset link to console only — never display on screen
+    if (result.devToken) {
+      console.log(
+        "%c[DEV] Password reset link:\n" + (result.resetUrl || ""),
+        "background:#1a1a2e;color:#00d4ff;padding:6px 10px;border-radius:4px;font-size:12px;"
+      );
+    }
     setStep("sent");
   };
 
@@ -674,13 +670,8 @@ function ForgotPasswordModal({ onClose, forgotPassword }) {
             <h3 style={{ fontFamily: "var(--font-display)", fontSize: "20px", fontWeight: 800, letterSpacing: "-0.5px", color: "var(--text-primary)", marginBottom: "8px" }}>Check your email</h3>
             <p style={{ fontSize: "13.5px", color: "var(--text-secondary)", lineHeight: 1.7, marginBottom: "20px" }}>
               If <strong style={{ color: "var(--text-primary)" }}>{email}</strong> is linked to an account, you'll receive a reset link shortly.
+              In dev mode the link is available in the browser console.
             </p>
-            {devToken && (
-              <div style={{ padding: "14px 16px", background: "rgba(255,209,102,0.07)", border: "1px solid rgba(255,209,102,0.25)", borderRadius: "12px", marginBottom: "20px", textAlign: "left" }}>
-                <div style={{ fontSize: "11px", fontWeight: 700, letterSpacing: "0.8px", textTransform: "uppercase", color: "rgba(255,209,102,0.8)", marginBottom: "8px" }}>Dev mode — reset link</div>
-                <a href={resetUrl} style={{ fontSize: "12.5px", color: "var(--cyan)", wordBreak: "break-all", lineHeight: 1.6 }}>{resetUrl}</a>
-              </div>
-            )}
             <button type="button" onClick={onClose} className="btn-primary" style={{ width: "100%", padding: "12px", fontSize: "14px" }}>Back to Sign In</button>
           </div>
         )}
@@ -947,20 +938,14 @@ export default function AuthPage() {
 
   /* ── Waveform bar color cycling: cyan → violet → coral ── */
   const waveBarColor = (i, total) => {
-    // Each bar gets a position in [0, 1] across the visualizer width
-    // Colors cycle smoothly: cyan(0) → violet(0.5) → coral(1) → cyan(2)
-    // We use 3 color stops cycling with period = total/1.5 bars
     const t = (i / total) % 1;
     if (t < 0.34) {
-      // cyan → violet
       const p = t / 0.34;
       return `rgba(${Math.round(0 + p * 123)}, ${Math.round(212 - p * 118)}, ${Math.round(255 - p * 88)}, 1)`;
     } else if (t < 0.67) {
-      // violet → coral
       const p = (t - 0.34) / 0.33;
       return `rgba(${Math.round(123 + p * 132)}, ${Math.round(94 + p * 13)}, ${Math.round(167 - p * 96)}, 1)`;
     } else {
-      // coral → cyan
       const p = (t - 0.67) / 0.33;
       return `rgba(${Math.round(255 - p * 255)}, ${Math.round(107 + p * 105)}, ${Math.round(71 + p * 184)}, 1)`;
     }
@@ -1038,7 +1023,6 @@ export default function AuthPage() {
           flex: "0 0 480px",
           alignSelf: "stretch",
           background: "linear-gradient(162deg, var(--bg-surface) 0%, var(--bg-elevated) 50%, var(--bg-deep) 100%)",
-          /* Remove the old faint borderRight — replaced by the dedicated divider below */
           borderRight: "none",
           display: "flex", flexDirection: "column", justifyContent: "space-between",
           padding: "48px",
@@ -1101,13 +1085,7 @@ export default function AuthPage() {
           }} />
         </div>
 
-        {/* ══════════════════════════════════════════════════════════
-            VERTICAL DIVIDER — dedicated element straddling the seam.
-            Positioned absolutely on the right edge of the left panel,
-            centred on the 480px boundary. Uses overflow:visible on
-            the parent so it can bleed into the right panel space.
-            Three-layer stack: soft glow bloom → sharp 1px line → glow.
-        ══════════════════════════════════════════════════════════ */}
+        {/* ══ VERTICAL DIVIDER ══ */}
         <div
           className="auth-panel-divider"
           style={{
@@ -1120,7 +1098,6 @@ export default function AuthPage() {
             zIndex: 10,
           }}
         >
-          {/* Outer soft bloom — wide, very low opacity */}
           <div style={{
             position: "absolute",
             top: "8%",
@@ -1132,7 +1109,6 @@ export default function AuthPage() {
             filter: "blur(6px)",
             borderRadius: "9px",
           }} />
-          {/* Core 1px line — the actual divider */}
           <div style={{
             position: "absolute",
             top: "4%",
@@ -1143,7 +1119,6 @@ export default function AuthPage() {
             background: "linear-gradient(to bottom, transparent 0%, rgba(0,212,255,0.20) 10%, rgba(0,212,255,0.45) 30%, rgba(123,94,167,0.50) 55%, rgba(0,212,255,0.38) 75%, rgba(0,212,255,0.15) 90%, transparent 100%)",
             borderRadius: "1px",
           }} />
-          {/* Inner tight glow on the line itself */}
           <div style={{
             position: "absolute",
             top: "15%",
@@ -1254,20 +1229,8 @@ export default function AuthPage() {
             ))}
           </div>
 
-          {/* ══════════════════════════════════════════════════════════
-              ANIMATED WAVEFORM VISUALIZER
-              Changes vs original:
-              1. Bar count raised 22 → 28 so bars extend further right
-                 toward the divider, visually connecting to the seam.
-              2. Color per bar cycles through cyan → violet → coral using
-                 the waveBarColor() helper defined above the return.
-              3. Base opacity raised — min opacity 0.45, peak 0.90 —
-                 so bars are noticeably darker / more visible at rest.
-              4. Box-shadow glow uses the matching accent color per bar.
-              5. Width slightly narrowed (3px→2.5px) to fit more bars.
-          ══════════════════════════════════════════════════════════ */}
+          {/* ══ ANIMATED WAVEFORM VISUALIZER ══ */}
           <div style={{ marginTop: "32px", position: "relative" }}>
-            {/* Glow bloom beneath bars — uses multi-color gradient */}
             <div style={{
               position: "absolute",
               bottom: 0, left: "4%", right: "-8%", height: "60px",
@@ -1281,7 +1244,6 @@ export default function AuthPage() {
               gap: "3px",
               height: "40px",
               position: "relative",
-              /* Extend slightly beyond panel padding toward the divider */
               marginRight: "-20px",
             }}>
               {Array.from({ length: 28 }).map((_, i) => {
@@ -1765,7 +1727,6 @@ export default function AuthPage() {
           to   { opacity: 1; transform: translateY(0);   }
         }
 
-        /* ── Waveform color-cycling keyframes ── */
         @keyframes waveColorCycle {
           0%   { filter: hue-rotate(0deg)   brightness(1.0); }
           33%  { filter: hue-rotate(200deg) brightness(0.9); }
