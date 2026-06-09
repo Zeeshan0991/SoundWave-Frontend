@@ -309,7 +309,7 @@ This project was built to strengthen skills in:
 **Muhammad Zeeshan**
 
 - GitHub: [Zeeshan0991](https://github.com/Zeeshan0991)
-- LinkedIn: [linkedin.com/in/your-profile](https://www.linkedin.com/in/muhammadzeeshan06222/)
+- LinkedIn: [Muhammad Zeeshan](https://www.linkedin.com/in/muhammadzeeshan06222/)
 
 ---
 
